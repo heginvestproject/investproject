@@ -1,0 +1,10 @@
+document.write("<header><nav><ul><li id='accueil'><a href='/accueil'>Accueil</a></li> ");
+document.write("<li id='reglement' ><a href='/reglement'>Règlement</a></li> ");
+document.write("<li id='ajouterLumens' ><a href='/ajouterLumens'>Ajouter des lumens</a></li> ");
+document.write("<li id='propositions' ><a href='/listePropositions'>Propositions</a></li>");
+document.write("<li style='float:right'><a href='/deconnexion'>Déconnexion</a></li>");
+document.write("<li id='taux' class='info'>Taux XLM/CHF :</li>");
+document.write("<li id='solde' class='info'>Votre solde :</li>");
+document.write("<li class='info'><img id='refresh' onclick='getBalance()' src='/img/refresh.png' style='width:18px;height:18px;' alt='mettre à jour son solde' /></li>");
+document.write("</ul>");
+document.write("</nav></header>");

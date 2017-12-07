@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>Transaction</title>
+		<meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="stylesheet" type="text/css" href="/css/style.css">
+        <script src="/js/jquery-3.2.1.min.js"></script>
+		<script type="text/javascript" language="Javascript" src="/js/fonctions.js"></script>
+    </head>
+
+    <body>
+        <h1>Transaction</h1>
+
+
+        <form id="formulaire" action="" method="post">
+            <p>
+                <label for="newtodo">Que dois-je faire ?</label>
+                <input type="text" name="secretKey" id="secretKey" /> Projet exemple pour tester les transactions
+				<input type="button" name="investir" id="investir" value="investir" />
+				<input type="button" name="moniteur" id="moniteur" value="moniteur"/>
+				<input type="submit" name="submit" id="submit" style="display:none" />
+				<input type="hidden" name="destinationKey" id="destinationKey" value="GCQRJ4VJMVDWMNSS5VW42UO4QJFEATJKJUTFN46HOYAQ2RLHUTDMZONQ" />
+            </p>
+        </form>
+    </body>
+	<script type="text/javascript">
+		$('#investir').click(function(){
+			$('#formulaire').attr('action', '/transaction');
+			$('#submit').click();
+		});
+		
+		$('#moniteur').click(function(){
+			$('#formulaire').attr('action', '/seeTransactions');
+			$('#submit').click();
+		});
+		
+	</script>
+</html>

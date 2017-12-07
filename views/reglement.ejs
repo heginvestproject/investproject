@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>Règlement</title>
+		<meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="stylesheet" type="text/css" href="/css/styleTableaux.css">
+        <script src="/js/jquery-3.2.1.min.js"></script>
+		<script type="text/javascript" language="Javascript" src="/js/fonctions.js"></script>
+		<script src="/js/moment.js"></script>
+    </head>
+
+    <body>
+	<div id="page">
+		<script src="/js/menu.js"></script>
+		<div id="contenu">
+			<img src="/img/logo.png" alt="InvestProject"/>
+			<h1>Règlement et fonctionnement d'InvestProject</h1>
+			<p>
+				Toutes les règles qui sont implémentées par du code, sont associées à une image qui montre la partie du code qui les concerne. 
+				Pour regarder tout le code d’InvestProject, aller sur son Github à ce <a target="_blank" href="https://github.com/saidiamir/InvestProject2">lien</a>
+			</p>
+			<div id="tauxLumensCHF" style="display:none"><%= tauxLumensCHF %></div>
+			<div id="balanceCompte" style="display:none"><%= balanceCompte %></div>
+			<table>
+				<thead>
+					<tr>
+						<th>N°</th>
+						<th>Règle</td></th>
+						<th>lien algorithme</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>1.</td>
+						<td>
+							Dans le site, tous les investissements et les récupérations d’investissement
+							se font avec la cryptomonnaie « lumens ».
+						</td>
+						<td class="lien"><a target="_blank" href="/img/imagesReglement/regle1.png">image</a></td>
+					</tr>
+					<tr>
+						<td>2.</td>
+						<td>
+							Pour recharger votre compte, il faudra faire la démarche qui est décrite 
+							dans le pdf à votre disposition sur le site sur cette <a href="/ajouterLumens" >page</a>.
+						</td>
+						<td class="lien"><a target="_blank" href="/img/imagesReglement/regle2.png">image</a></td>
+					</tr>
+					<tr>
+						<td>3.</td>
+						<td>
+							Votre compte ne doit pas descendre en dessous des 20 lumens pour qu’il reste actif,
+							donc toutes transactions ramenant votre solde en dessous de ce seuil seront bloqués,
+							pour assurer le bon fonctionnement de votre compte.
+						</td>
+						<td class="lien"><a target="_blank" href="/img/imagesReglement/regle3.png">image</a></td>
+					</tr>
+					<tr>
+						<td>4.</td>
+						<td>
+							Chaque mois, il y a une période de proposition de projet allant du début du mois, 
+							jusqu’au début du mois suivant. Lorsque la période est terminée,
+							les lumens sont redistribués et une nouvelle période est lancée.
+						</td>
+						<td class="lien"><a target="_blank" href="/img/imagesReglement/regle4.png">image</a></td>
+					</tr>
+					<tr>
+						<td>5.</td>
+						<td>
+							L’objectif commun à toutes les propositions de projet est de 3000CHF, 
+							pour que le proposant récupère l’investissement il faut que le total investi
+							atteigne l’objectif.
+						</td>
+						<td class="lien"><a target="_blank" href="/img/imagesReglement/regle5.png">image</a></td>
+					</tr>
+					<tr>
+						<td>6.</td>
+						<td>
+							Lorsque vous investissez sur une proposition de projet, 
+							les lumens investis sont transférés sur le compte de gestion du site
+							et y resteront jusqu’à la fin de la période en cours.
+						</td>
+						<td class="lien"><a target="_blank" href="/img/imagesReglement/regle6.png">image</a></td>
+					</tr>
+					<tr>
+						<td>7.</td>
+						<td>
+							Lorsqu’un projet auquel vous avez investi des lumens, n’atteint pas l’objectif, 
+							les lumens vous seront rendus, moins une taxe de 0,1% qui couvre les frais de transactions
+							et de fonctionnement du site internet.
+						</td>
+						<td class="lien"><a target="_blank" href="/img/imagesReglement/regle7.png">image</a></td>
+					</tr>
+					<tr>
+						<td>8.</td>
+						<td>
+							Lorsqu’un projet atteint l’objectif, le proposant récupère le total d’investissement,
+							auquel les taxes ont déjà été soustraites.
+						</td>
+						<td class="lien"><a target="_blank" href="/img/imagesReglement/regle8.png">image</a></td>
+					</tr>
+					<tr>
+						<td>9.</td>
+						<td>
+							Il est important de savoir que les lumens n’ont pas une valeur fixe en CHF, 
+							c’est pourquoi, sur le site internet, il y a le taux lumens/CHF disponible
+							qui est mis à jour toutes les 5 minutes et
+							il y a également l’affichage des totaux d’investissements des propositions en lumens et chf.
+						</td>
+						<td class="lien"><a target="_blank" href="/img/imagesReglement/regle9.png">image</a></td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+	<script src="/js/footer.js"></script>
+		
+    </body>
+</html>
+<!--<button id="taux" >taux</button>-->
+<script type="text/javascript">
+	var tauxLumensCHF;
+	$(document).ready(function(){
+		tauxLumensCHF = parseFloat($('#tauxLumensCHF').text());
+		balanceCompte = parseFloat($('#balanceCompte').text());
+		if(isNaN(balanceCompte)){
+			balanceCompte=0;
+		}
+		$('#taux').append(" "+tauxLumensCHF.toFixed(7));
+		$('#solde').text("Votre solde : "+balanceCompte.toFixed(7)+" XLM / "+(balanceCompte*tauxLumensCHF).toFixed(2)+" CHF");
+		$('#reglement').addClass('active');
+	});
+	$("#btnBalance").click(function(){
+		getBalance();
+	})
+</script>

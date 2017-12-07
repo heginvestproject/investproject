@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>Accueil</title>
+		<meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="stylesheet" type="text/css" href="/css/styleTableaux.css">
+        <script src="/js/jquery-3.2.1.min.js"></script>
+		<script type="text/javascript" language="Javascript" src="/js/fonctions.js"></script>
+		<script src="/js/moment.js"></script>
+    </head>
+
+    <body>
+		<div id="page">
+			<script src="/js/menu.js"></script>
+			<div id="contenu">
+				<img src="/img/logo.png" alt="InvestProject"/>
+				<h1>Bienvenue sur InvestProject</h1>
+				<p style="font-size:25px; color:">
+					InvestProject est un site internet permettant de proposer des projets pour obtenir un investissement.<br>
+					Il y a pour chaque périodes des propositions créées par des utilisateurs et ceux qui souhaitent investir pour un des projets, 
+					parcourent et choisissent la/les propositions qui les a/ont le plus séduit.
+				</p>
+				<p style="font-size:25px;">
+					Le but de cela est d’avoir un site ou les personnes souhaitant investir sur des projets et 
+					les personnes souhaitant obtenir des investissements, se rencontrent et ont directement plusieurs choix de projets
+					à disposition au même endroit.
+				</p>
+				<p style="font-size:25px;">
+					Ce site fonctionne automatiquement, les personnes font des propositions de projet et les autres investissent dessus, à la fin d'une période,
+					les investissements sont distribués et le site relance une nouvelle période où des nouvelles propositions peuvent être faites.
+					L'administrateur peut intervenir en cas de problème ou de changement sur le site, mais il n'a pas besoin d'intervenir pour permettre son
+					fonctionnement.
+				</p>
+				<div id="tauxLumensCHF" style="display:none"><%= tauxLumensCHF %></div>
+				<div id="balanceCompte" style="display:none"><%= balanceCompte %></div>
+			</div>
+		</div>
+		<script src="/js/footer.js"></script>
+    </body>
+</html>
+<!--<button id="taux" >taux</button>-->
+<script type="text/javascript">
+	var tauxLumensCHF;
+	$(document).ready(function(){
+		tauxLumensCHF = parseFloat($('#tauxLumensCHF').text());
+		balanceCompte = parseFloat($('#balanceCompte').text());
+		if(isNaN(balanceCompte)){
+			balanceCompte=0;
+		}
+		
+		$('#taux').append(" "+tauxLumensCHF.toFixed(7));
+		$('#solde').text("Votre solde : "+balanceCompte.toFixed(7)+" XLM / "+(balanceCompte*tauxLumensCHF).toFixed(2)+" CHF");
+		getBalance();
+		$('#accueil').addClass('active');
+	});
+	/*$("#btnMajBalance").click(function(){
+		alert(getBalance());
+	})*/
+	$("#test").click(function(){
+		var amir = new Utilisateur("GD7K2PTLTTP3ZEYQKGR4AWDHEJ6ZER54HHTOULE2D6IEGSXPJ7JWZQ4J");
+		var amir2 = new Utilisateur("GDK26R4OJ32ZYHYJGC7GB336Y6XEZTD5KMDYOMESOPKO2YXU4B42XQY5");
+		var tableau = [];
+		tableau.push(amir);
+		tableau.push(amir2); 
+		$('#json').text(JSON.stringify(tableau));
+	})	
+				
+	
+	$("#taux").click(function(){
+
+	})
+</script>

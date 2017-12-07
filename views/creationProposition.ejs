@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>Création de proposition</title>
+		<meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="stylesheet" type="text/css" href="/css/styleTableaux.css">
+		<link rel="stylesheet" type="text/css" href="/js/jquery-ui.css">
+		<link rel="stylesheet" type="text/css" href="/js/jquery-ui.min.css">
+		<link rel="stylesheet" type="text/css" href="/js/jquery-ui.structure.min.css">
+		<link rel="stylesheet" type="text/css" href="/js/jquery-ui.structure.css">
+		<link rel="stylesheet" type="text/css" href="/js/jquery-ui.theme.min.css">
+		<link rel="stylesheet" type="text/css" href="/js/jquery-ui.theme.css">
+        <script src="/js/jquery-3.2.1.min.js"></script>
+		<script src="/js/jquery-ui.js"></script>
+		<script src="/js/jquery-ui.min.js"></script>
+		<script src="/js/ckeditor/ckeditor.js"></script>
+		<script type="text/javascript" language="Javascript" src="/js/fonctions.js"></script>
+    </head>
+
+    <body>
+		<div id="page">
+			<script src="/js/menu.js"></script>
+			<div style="text-align:left" id="contenu">
+				<img src="/img/logo.png" alt="InvestProject"/>
+				<h1 style="color:#4186be">Créer une proposition</h1>
+				<form id="formulaire" action="/ajoutProposition" method="post">
+					<strong style="color:#4186be">Nom du projet <span style="margin-left:4.5%;">:</span></strong> <input style="width: 50%;margin-left:0.5%;" type="text" id="nomProjet"><br><br><br>
+					<strong style="color:#4186be">Date du projet        <span style="margin-left:4.5%;">: </span></strong> <span style="color:#4186be" style="margin-left:0.5%;">Du </span><input type="text" id="dateDebutProjet" readonly> <strong style="color:#4186be">au</strong> <input type="text" id="dateFinProjet" readonly><br><br><br>
+					<strong style="color:#4186be">Description du projet <span style="margin-left:0.5%;">:</span></strong><br><br>
+					<textarea id="descriptionProjet" name="descriptionProjet" style="width: 100%;"></textarea><br>
+					<div id="sessPublicKey" style="display:none"><%= sessPublicKey %></div>
+					<div id="sessEmail" style="display:none"><%= sessEmail %></div>
+					<div id="tauxLumensCHF" style="display:none"><%= tauxLumensCHF %></div>
+					<div id="balanceCompte" style="display:none"><%= balanceCompte %></div>
+				</form>
+				<br/>
+				<button style='float:right' class="button" id="creer">Créer</button>
+				<div id="result"></div>
+			</div>
+		</div>
+		<script src="/js/footer.js"></script>
+    </body>
+</html>
+<script type="text/javascript">
+	var ckEditor;
+	var tauxLumensCHF;
+	var sessPublicKey;
+	var sessEmail;
+
+	$(document).ready(function(){
+		sessEmail = $('#sessEmail').text();
+		sessPublicKey = $('#sessPublicKey').text();
+		tauxLumensCHF = parseFloat($('#tauxLumensCHF').text());
+		balanceCompte = parseFloat($('#balanceCompte').text());
+		if(isNaN(balanceCompte)){
+			balanceCompte=0;
+		}
+		$('#taux').append(" "+tauxLumensCHF.toFixed(7));
+		$('#solde').text("Votre solde :"+balanceCompte.toFixed(7)+" XLM / "+(balanceCompte*tauxLumensCHF).toFixed(2)+" CHF");
+		doDatePicker();
+		ckEditor = CKEDITOR.replace( 'descriptionProjet' );
+		initPeriodes();
+		attendre(false);
+	});
+	$('#creer').click(function(){
+		ajouterProposition();
+	});
+	
+
+	 
+	$('#exemple').click(function (){
+		alert("ok");
+		var lesPeriodes = [];
+		var lesPropositions = [];
+		lesPropositions.push(new Proposition("Projet pour la période 0", "15/09/2017", "30/09/2017", 
+											"Projet réalisé dans les essai pour la période 0", 0, "GD7K2PTLTTP3ZEYQKGR4AWDHEJ6ZER54HHTOULE2D6IEGSXPJ7JWZQ4J"));
+		lesPropositions.push(new Proposition("2ème projet pour la période 0", "15/09/2017", "30/09/2017", 
+											"2ème projet réalisé dans les essai pour la période 0", 1, "GD7K2PTLTTP3ZEYQKGR4AWDHEJ6ZER54HHTOULE2D6IEGSXPJ7JWZQ4J"));
+											
+		lesPeriodes.push(new Periode("0", "01/09/2017", "30/09/2017", lesPropositions));
+		var lesPropositions = [];
+		lesPropositions.push(new Proposition("Projet pour la période 1", "01/10/2017", "20/10/2017", 
+											"Projet réalisé dans les essai pour la période 1", 2, "GD7K2PTLTTP3ZEYQKGR4AWDHEJ6ZER54HHTOULE2D6IEGSXPJ7JWZQ4J"));
+		lesPropositions.push(new Proposition("2ème projet pour la période 1", "01/10/2017", "20/10/2017", 
+											"2ème projet réalisé dans les essai pour la période 1", 3, "GD7K2PTLTTP3ZEYQKGR4AWDHEJ6ZER54HHTOULE2D6IEGSXPJ7JWZQ4J"));
+											
+		lesPeriodes.push(new Periode(1, "01/10/2017", "20/10/2017", lesPropositions));
+		$('#result').text(JSON.stringify(lesPeriodes));
+		alert(ckEditor.getData);
+		alert(encodeURIComponent(ckEditor.getData()));
+	});
+	
+	
+
+	
+	function ajouterProposition(){
+		var periode = tabPeriodes.pop();
+		var nom = $('#nomProjet').val();
+		var description = ckEditor.getData();
+		periode.listePropositions.push(new Proposition(nom , $('#dateDebutProjet').val(), $('#dateFinProjet').val(), description, (idMaxProposition+1), sessPublicKey, sessEmail));
+		tabPeriodes.push(periode);
+		putPeriodes("création");
+	}
+		/*function doPost(){
+		alert($('#nomProjet').val());
+		var http=new XMLHttpRequest();
+		var url = "/ajoutProposition";
+		var params = "nomProjet="+$('#nomProjet').val();
+		params    += "&dateDebutProjet="+$('#dateDebutProjet').val();
+		params    += "&dateFinProjet="+$('#dateFinProjet').val();
+		params    += "&descriptionProjet="+CKEDITOR.instances['descriptionProjet'].getData();
+		http.open("POST", url, true);
+
+		//Send the proper header information along with the request+
+		/*http.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+		http.setRequestHeader("Accept", "application/json");
+		http.setRequestHeader("Accept", "application/x-www-form-urlencoded");
+		http.send(params);
+		http.onreadystatechange = function() {//Call a function when the state changes.
+			
+			if(http.readyState == 4 && http.status == 200) {
+				alert("réussi !");
+			} else if(http.readyState == 4){
+				alert("La requête put n'a pas été correctement effectuée");
+			}
+		}
+	}*/
+</script>

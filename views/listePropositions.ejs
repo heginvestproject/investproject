@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+	    <title>Liste propositions</title>
+		<meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<!--<link rel="stylesheet" type="text/css" href="/css/style.css">-->
+		<link rel="stylesheet" type="text/css" href="/css/styleTableaux.css">
+        <script src="/js/jquery-3.2.1.min.js"></script>
+		<script src="js/jquery.countdown.min.js"></script>
+		<script type="text/javascript" language="Javascript" src="/js/fonctions.js"></script>
+    </head>
+
+    <body>
+		<div id="page" style="bottom:0;" >
+			<header>
+				<script src="/js/menu.js"></script>
+			</header>
+			<div id="contenu">
+				<img src="/img/logo.png" alt="InvestProject"/>
+				<h1>Propositions de projet</h1>
+				<div id="tauxLumensCHF" style="display:none"><%= tauxLumensCHF %></div>
+				<div id="balanceCompte" style="display:none"><%= balanceCompte %></div>
+				<strong style="color:#4186b3">Période :</strong> <select id="lstPeriodes">
+				</select> <div style="float:right;color:#4186b3;" id="countdown"></div><br/><br/>
+				<table>
+					<thead>
+						<tr>
+							<th><strong>Nom du projet</strong></th>
+							<th><strong>Date de début du projet</strong></th>
+							<th><strong>Date de fin du projet</strong></th>
+							<th><strong>Investissement total (objectif 3000 CHF)</strong></th>
+							<th><strong>Statut</strong></th>
+							<th><strong>lien proposition</strong></th>
+							<th><strong>lien moniteur</strong></th>
+						</tr>
+					</thead>
+					<tbody id="result">
+					</tbody>
+				</table>
+				<div id="message" style="text-align:center;">
+				</div>
+				<!--<div style="text-align:center" >
+					<img src="/img/encours.gif" /> En cours
+					<img style="margin-left:10px" src="/img/investissementsObtenus.png" /> Investissements obtenus
+					<img style="margin-left:10px" src="/img/investissementsRendus.png" /> Investissements rendus
+				</div>
+				LEGENDE A AJOUTER PAR LA SUITE POUR LES IMAGES DES STATUTS-->
+				<br/>
+				<button style='float:right' class="button" id="btnCreerProposition" onClick="window.location='/creationProposition'">Créer une proposition</button>
+			</div>
+		</div>
+		<script src="/js/footer.js"></script>
+    </body>
+</html>
+<script type="text/javascript">
+	var idMaxProposition;
+	var hash;
+	var rempli = 0;
+	var tauxLumensCHF;
+
+	$(document).ready(function(){
+		tauxLumensCHF = parseFloat($('#tauxLumensCHF').text());
+		balanceCompte = parseFloat($('#balanceCompte').text());
+		if(isNaN(balanceCompte)){
+			balanceCompte=0;
+		}
+		$('#taux').append(" "+tauxLumensCHF.toFixed(7));
+		$('#solde').text("Votre solde : "+balanceCompte.toFixed(7)+" XLM / "+(balanceCompte*tauxLumensCHF).toFixed(2)+" CHF");
+		$('#propositions').addClass('active');
+		initPeriodes("afficherListePropositions");
+		compteArebours();
+	});
+	
+	$('#lstPeriodes').on('change', function() {
+		afficherListePropositions(this.value);
+	});
+
+	$('#lstPeriodes').click(function() {
+		compteArebours();
+	});
+	
+	function afficherListePropositions(numero=-1){
+		if(rempli==0){
+			var periodeSelection = tabPeriodes.length-1;
+			$.each(tabPeriodes, function(i, obj){
+				$("#lstPeriodes").append(
+						"<option value='"+obj.numeroPeriode+"'>"+obj.dateDebutPeriode+" - "+obj.dateFinPeriode+"</option>");
+			});
+			rempli = 1;
+			$("#lstPeriodes").val(periodeSelection).change();
+		}
+		//voir pour récupérer la période sans la pop, pour éviter de faire pop puis push
+		var periode;
+		if(numero==-1){
+			periode = tabPeriodes.pop();
+			tabPeriodes.push(periode);
+		}else{
+			periode = getPeriode(numero, tabPeriodes);
+		}
+		var tabPropositions = periode.listePropositions;
+		var nbPropositions = 0;
+		$("#result").text("");
+		$.each(tabPropositions, function(i, obj) {
+			var nom = obj.nomProjet;
+			var dateDebut = obj.dateDebutProjet;
+			var dateFin = obj.dateFinProjet;
+			var id = obj.propositionId;
+			var balance = obj.balance;
+			var statut = obj.statut;
+			var image;
+			var alt;
+			switch(obj.statut) {
+				case "En cours":
+					image="encours.gif";
+					alt="En cours";
+					break;
+				case "investissements obtenus":
+					image="investissementsObtenus.png";
+					alt="Investissements obtenus";
+					break;
+				case "investissements rendus":
+					image="investissementsRendus.png";
+					alt="Investissements rendus";
+			}
+			$("#result").append(
+				"<tr><td style='text-align:center'>"+nom + "</td>" +
+				"<td style='text-align:center'>"+dateDebut+"</td>" +
+				"<td style='text-align:center'>"+dateFin+"</td>" +
+				"<td style='text-align:center; width:200px;'>"+balance+" XLM / "+(balance*tauxLumensCHF).toFixed(2)+" CHF</td>" +
+				"<td style='text-align:center'><img src='/img/"+image+"' alt='"+alt+"' /></td>" +
+				"<td style='text-align:center'>"+"<button class='buttonTab' onclick=afficherProposition("+id+"); > <strong>voir la proposition</strong></button></td>"+
+				"<td style='text-align:center'>"+"<button class='buttonTab' onclick=afficherMoniteur("+id+"); > <strong>moniteur</strong></button></td></tr>"
+			);
+			nbPropositions++;
+		});
+		if(nbPropositions ==0){
+			$("#message").html("<h3>il n'y a aucune proposition.</h3>");
+		}else{
+			$("#message").html("");
+		}
+		attendre(false);
+	}
+	
+	function afficherProposition(id){
+		window.location = "/propositions/"+id;
+	}
+	function afficherMoniteur(id){
+		window.location = "/moniteurs/"+id;
+	}
+	
+	function compteArebours(){
+		var dateDebut = new Date();
+		
+		/*
+			le mois renvoyé est un chiffre de 0 à 11, donc si on est en janvier, on aura 0.
+			On fait +1 pour avoir le compte à rebours jusqu'au début du mois prochain qui est la fin de la période.
+		*/
+		var mois = dateDebut.getMonth()+1;
+		var jour = "01";
+		if (mois < 10) { mois = '0' + mois; }
+		
+	
+		
+		var dateFin = new Date(dateDebut.getFullYear(), mois, jour, "00", "00", "00", "00");
+		
+		
+		var millisecondes = dateFin-dateDebut;
+		
+		  $("#countdown")
+		  .countdown(dateFin, function(event) {
+			$(this).text(
+			  event.strftime('Fin de la période en cours dans : %Dj %Hh %Mm %Ss ')
+			);
+		  });
+
+	}
+</script>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>Ajouter des lumens</title>
+		<meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="stylesheet" type="text/css" href="/css/styleTableaux.css">
+        <script src="/js/jquery-3.2.1.min.js"></script>
+		<script type="text/javascript" language="Javascript" src="/js/fonctions.js"></script>
+		<script src="/js/moment.js"></script>
+    </head>
+
+    <body>
+		<div id="page">
+			<script src="/js/menu.js"></script>
+			<div id="contenu">
+				<img src="/img/logo.png" alt="InvestProject"/>
+				<h1>Ajouter des lumens à son compte</h1>
+				<div id="tauxLumensCHF" style="display:none"><%= tauxLumensCHF %></div>
+				<div id="balanceCompte" style="display:none"><%= balanceCompte %></div>
+				<p style="color:#4186be;font-size:25px;">
+					Pour recharger son compte en Lumens, il faut passer par des sites d'achats et d'échanges
+					de crypto-monnaies. Un tutoriel est disponible pour vous expliquez les différentes étapes
+					 à réaliser pour alimenter votre compte en Lumens. Voci le tutoriel sous forme pdf :
+					 <a href="/pdf/AlimenterSonCompte.pdf" Target="_blank"><img style="width:50px; height:50px" src="/img/pdf.png" alt="InvestProject"/></a>
+				</p>
+			</div>
+		</div>
+		<script src="/js/footer.js"></script>
+    </body>
+</html>
+<!--<button id="taux" >taux</button>-->
+<script type="text/javascript">
+	var tauxLumensCHF;
+	$(document).ready(function(){
+		tauxLumensCHF = parseFloat($('#tauxLumensCHF').text());
+		balanceCompte = parseFloat($('#balanceCompte').text());
+		if(isNaN(balanceCompte)){
+			balanceCompte=0;
+		}
+		$('#taux').append(" "+tauxLumensCHF.toFixed(7));
+		$('#solde').text("Votre solde : "+balanceCompte.toFixed(7)+" XLM / "+(balanceCompte*tauxLumensCHF).toFixed(2)+" CHF");
+		$('#ajouterLumens').addClass('active');
+		//getBalance();
+	});
+	$("#btnMajBalance").click(function(){
+		getBalance();
+	})
+	$("#test").click(function(){
+		
+	})	
+				
+	
+</script>

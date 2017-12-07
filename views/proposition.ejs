@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Proposition</title>
+		<meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="stylesheet" type="text/css" href="/css/styleTableaux.css">
+		<link rel="stylesheet" type="text/css" href="/js/jquery-ui.css">
+		<link rel="stylesheet" type="text/css" href="/js/jquery-ui.min.css">
+		<link rel="stylesheet" type="text/css" href="/js/jquery-ui.structure.min.css">
+		<link rel="stylesheet" type="text/css" href="/js/jquery-ui.structure.css">
+		<link rel="stylesheet" type="text/css" href="/js/jquery-ui.theme.min.css">
+		<link rel="stylesheet" type="text/css" href="/js/jquery-ui.theme.css">
+        <script src="/js/jquery-3.2.1.min.js"></script>
+		<script src="/js/jquery-ui.js"></script>
+		<script src="/js/jquery-ui.min.js"></script>
+		<script src="/js/ckeditor/ckeditor.js"></script>
+		<script type="text/javascript" language="Javascript" src="/js/fonctions.js"></script>
+		<script src="/js/moment.js"></script>
+    </head>
+    <body>
+		<div id="page">
+			<script src="/js/menu.js"></script>
+			<div id="contenu" style="text-align:left;">
+				<img src="/img/logo.png" alt="InvestProject"/>
+				<h1>Description de la proposition</h1>
+				<form id="formulaire" action="/ajoutProposition" method="post">
+					<strong style="color:#4186be;">Nom du projet <span style="margin-left:10px;">:</span></strong> <input style="width: 50%;margin-left:4%;" type="text" id="nomProjet" ><br><br><br>
+					<strong style="color:#4186be;">Date du projet        <span style="margin-left:10px;">:</span></strong> <span style="margin-left:4%;" ><strong style="color:#4186be;">Du </strong></span><input type="text" id="dateDebutProjet" ><strong style="color:#4186be;"> au </strong><input type="text" id="dateFinProjet" ><br><br><br>
+					<strong style="color:#4186be;">Investissement total <span style="margin-left:6px;">:</span></strong><span id="investiTotal" style="margin-left:4%;color:#4186be;"></span><br><br><br>
+					<strong style="color:#4186be;">Description du projet <span style="margin-left:5px;">:</span></strong><br><br>
+					<textarea id="descriptionProjet" name="descriptionProjet" style="width: 100%;"></textarea><br>
+					<div id="sessPublicKey" style="display:none"><%= sessPublicKey %></div>
+					<div id="sessEmail" style="display:none"><%= sessEmail %></div>
+					<div id="idProposition" style="display:none"><%= idProposition %></div>
+					<div id="tauxLumensCHF" style="display:none"><%= tauxLumensCHF %></div>
+					<div id="balanceCompte" style="display:none"><%= balanceCompte %></div>
+				</form>
+				<strong style="font-size:22px;color:#4186be;" >Lumens :</strong> <input type="number" id="nbLumens" style="width:80px;height:25px" min="1">
+				<button class="button" id="btnInvestir" disabled>investir</button>
+				<button style="float:right;" class="button" id="btnModifier" disabled>modifier</button>
+				<!--<button id="btnT" >tester</button>-->
+				<div id="result"></div>
+			</div>
+		</div>
+		
+    </body>
+</html>
+<script type="text/javascript">
+	var ckEditor;
+	var id;
+	var sessPublicKey;
+	var sessEmail;
+	var tauxLumensCHF;
+	var balanceCompte;
+	
+	$('#btnT').click(function(){
+		$.prompt('Example 1');
+	});
+	
+	
+	
+	$(document).ready(function(){
+		ckEditor = CKEDITOR.replace( 'descriptionProjet' );
+		id=$('#idProposition').text();
+		sessPublicKey = $('#sessPublicKey').text();
+		sessEmail = $('#sessEmail').text();
+		tauxLumensCHF = parseFloat($('#tauxLumensCHF').text());
+		balanceCompte = parseFloat($('#balanceCompte').text());
+		if(isNaN(balanceCompte)){
+			balanceCompte=0;
+		}
+		$('#solde').text("Votre solde : "+balanceCompte.toFixed(7)+" XLM / "+(balanceCompte*tauxLumensCHF).toFixed(2)+" CHF");
+		$('#taux').append(" "+tauxLumensCHF.toFixed(7));
+		initPeriodes("afficherProposition");
+	});
+	$('#btnModifier').click(function(){
+		//CKEDITOR.instances.descriptionProjet.updateElement();
+		//$('#formulaire').submit();
+		modifierProposition();
+	});
+	$('#btnTest').click(function(){
+		$('#result').text(moment().format('DD/MM/YYYY à HH:mm:ss'));
+	});
+
+
+	//GERER LE PROBLEME DE DATE POUR FIREFOX ET ENSUISTE FAIRE LAJOUT DES DONNES EN JSON
+
+	 
+	$('#btnInvestir').click(function (){
+		investir();
+	});
+	
+	//PLACER LES FONCTION D'ENCODAGE ET DECODAGE DES CARACTERES DANS LES PAGES QUI EN ONT BESOIN ET TERMINER L'Ajouter
+	// ET LA MODIFICATION DES PROPOSITION ET TESTER L'AJOUT DE LUMENS PUIS UNE TRANSACTION.
+	
+
+	
+
+	
+	function afficherProposition() {
+		//var periode = tabPeriodes.pop();
+		//tabPeriodes.push(periode);
+		var proposition = getPropositionPeriode(id, tabPeriodes);
+		$('#nomProjet').val(proposition.nomProjet);
+		$('#dateDebutProjet').val(proposition.dateDebutProjet);
+		$('#dateFinProjet').val(proposition.dateFinProjet);
+		$('#investiTotal').text(proposition.balance+" XLM / "+(proposition.balance*tauxLumensCHF).toFixed(2)+" CHF");
+		//CKEDITOR.instances['descriptionProjet'].updateElement();
+		/*if(sessPublicKey==proposition.publicKey){
+			CKEDITOR.instances['descriptionProjet'].setReadOnly( false );
+		} else{
+			CKEDITOR.instances['descriptionProjet'].setReadOnly( true );
+		}*/
+		//CKEDITOR.instances['descriptionProjet'].setData(proposition.descriptionProjet);
+		//ckEditor.setData(proposition.descriptionProjet);
+		//CKEDITOR.instances['descriptionProjet'].updateElement();
+
+		ckEditor.on( 'instanceReady', function ( ev ) {
+			editor = ev.editor;
+			editor.setData(proposition.descriptionProjet);
+		} );
+		if(proposition.statut!="En cours"){
+			$("#btnModifier").prop('disabled',true);
+			$("#nomProjet").prop('readonly',true);
+			$("#btnInvestir").prop('disabled',true);
+			ckEditor.setReadOnly(true);
+		}else if(sessPublicKey!=proposition.publicKey){
+			$("#btnModifier").prop('disabled',true);
+			$("#nomProjet").prop('readonly',true);
+			$("#btnInvestir").prop('disabled',false);
+			ckEditor.setReadOnly(true);
+		}else{
+			$("#btnModifier").prop('disabled',false);
+			$("#nomProjet").prop('readonly',false);
+			$("#btnInvestir").prop('disabled',false);
+			doDatePicker();
+			ckEditor.setReadOnly(false);
+		}
+		ckEditor.setData(proposition.descriptionProjet);
+		if(proposition.statut== "En cours"){
+			$("#btnInvestir").prop('disabled',false);
+		}else{
+			
+			$("#btnModifier").prop('disabled',true);
+			
+		}
+		attendre(false);
+		
+		ckEditor.setData(proposition.descriptionProjet);
+	}
+	/*
+		Mettre le bouton pour investir, ajouter un attribut statut pour la proposition.
+	*/
+	
+	function modifierProposition(){
+		var periode = tabPeriodes.pop();
+		$.each(periode.listePropositions, function(i, obj) {
+			if(obj.propositionId == id){
+				obj.nomProjet=$('#nomProjet').val();
+				obj.dateDebutProjet=$('#dateDebutProjet').val();
+				obj.dateFinProjet=$('#dateFinProjet').val();
+				obj.descriptionProjet=ckEditor.getData();
+			}
+		});
+		tabPeriodes.push(periode);
+
+		putPeriodes("modification");
+	}
+	
+	function investir(){
+		attendre(true);
+		var secretKey = prompt("Veuillez entrez votre clé secrète s'il vous plait.", "");
+		if (secretKey != null) {
+			var periode = tabPeriodes.pop();
+			var proposition = getProposition(id, periode.listePropositions);
+			var utilisateur = getUtilisateur(sessPublicKey);
+			var valeur = $('#nbLumens').val();
+			var balance;
+			var jqxhr =  $.get( "/balance");
+			jqxhr.done(function( data ) {
+				$.each(JSON.parse(data), function(i, obj) {
+					balance = obj.balance;
+				});
+				if((balance-valeur)>20){
+					var destinationKey = investProjectPublicKey;
+					var dataString = 'secretKey='+ secretKey.toString() + '&destinationKey=' + destinationKey + '&valeur=' + (valeur-0.00001).toString();
+					$.ajax({
+						type: "POST",
+						url: "/transaction",
+						data: dataString,
+						success: function(data) {
+							if(data=="error"){
+								alert("L'investissement n'a pas pu être pris en compte dû à un soucis d'un serveur.");
+								tabPeriodes.push(periode);
+							} else{
+								attendre(false);
+								proposition.listeInvestissements.push(new Investissement(sessPublicKey, valeur-(valeur*0.001), moment().format('DD/MM/YYYY à HH:mm:ss'), data._links.transaction.href, sessEmail));
+								proposition.balance += valeur-(valeur*0.1/100);
+								periode = setProposition(periode, proposition);
+								tabPeriodes.push(periode);
+								putPeriodes("investissement");
+								//alert("investissement réussi !");
+							}
+							
+						},
+						error: function(data) {
+							attendre(false);
+							alert("l'investissement n'a pas pu être fait, dû à un souci d'un serveur");
+						}
+					});
+				}else{
+					attendre(false);
+					tabPeriodes.push(periode);
+					alert("Votre compte doit garder 20 lumens minimum.");
+				}
+
+			});
+			jqxhr.fail(function(data){
+				attendre(false);
+				balance = -1;
+			});
+		} else{
+			attendre(false);
+			alert("veuillez rentrez une clé secrète valide s'il vous plait.");
+		}
+	}
+	
+</script>

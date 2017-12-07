@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+PLUUUUUUUUUUUS BESOIIIIIIIIIIIIIIIIIN
+<html>
+    <head>
+        <title>Compte généré</title>
+		<meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="stylesheet" type="text/css" href="/css/style.css">
+        <script src="/js/jquery-3.2.1.min.js"></script>
+		<script type="text/javascript" language="Javascript" src="/js/fonctions.js"></script>
+    </head>
+
+    <body>
+        <h1>Votre compte</h1>
+
+		<p>Clé publique du compte : <p id="accountPublic"><%= accountPublic %></p></p>
+		<p>Clé privée du compte <span id="accountSecret"><%= accountSecret %></p>
+		<span id="sessPublicKey" style="display:none"><%= sessPublicKey %></span>
+		<span id="json"></span>
+        <form id="submit" action="" method="post">
+            <p>
+                Veuillez garder précieusement ces clés, ce sont les clés de votre compte, qui vont vous permettre d'investir dans les projets.
+            </p>
+			<a id="test">test</a>
+        </form>
+    </body>
+</html>
+<script type="text/javascript">
+	var sessPublicKey;
+	var tabComptes;
+	var valueJSON;
+	var account;
+	var hash;
+	$(document).ready(function(){
+		initTableau();
+	});
+	
+	$('#test').click(function (){
+		//testRequete();
+		ajouterCompte(tabComptes);
+	});
+	
+	
+	
+	
+	
+	
+	function testRequete (){
+		jQuery.ajax({
+			type: "PUT",
+			url: "http://groups.cowaboo.net/group-coInvest/public/api/entry?secretKey="+secretInvestProject+"&observatoryId=Comptes&hash="+hash+"&value="+JSON.stringify(tabComptes),
+			data: JSON.stringify(tabComptes),
+			success: function (data, status, jqXHR) {
+				alert("réussi !!!!");
+			},
+		
+			error: function (jqXHR, status) {
+				alert("loupé !!! status : "+status);
+	   
+			}    
+		});
+	}
+	
+	function testRequete2(){
+		var url = "http://groups.cowaboo.net/group-coInvest/public/api/entry?secretKey="+secretInvestProject+"&observatoryId=Comptes&hash="+hash+"&value="+JSON.stringify(tabComptes);
+		var jqxhr =  $.put(url);
+		jqxhr.done(function( data ) {
+			alert("réussi");
+		});
+		jqxhr.fail(function(data){
+			alert("La requête put n'a pas fonctionnée");
+			//$("#resultat").text("Cette clé privée n'est pas valide");
+		});
+		
+	}
+</script>

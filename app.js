@@ -1,5 +1,16 @@
+/*
+	Auteur : Amir SAIDI
+	Date création : août 2017
+	Lieu : Genève / HEG
+	Description : Fichier app.js, contenant les différentes fonctions exécutées sur le serveur, ainsi qu'un routage en fonction des pages appelées.
+				  Renvoi les pages affichées aux utilisateurs et contient également l'algorithme s'exécutant automatiquement tous les 1ers du mois.
+				  Toutes les interactions faites avec horizon de Stellar sont faites ici.
+*/
+
 var express = require('express');
-var session = require('cookie-session'); // Charge le middleware de sessions
+var sessionssssss = require('cookie-session'); // Charge le middleware de sessions
+var cookieParser = require('cookie-parser');
+var session = require('express-session');
 var bodyParser = require('body-parser'); // Charge le middleware de gestion des paramètres
 var urlencodedParser = bodyParser.urlencoded({ extended: false });
 var StellarSdk = require('stellar-sdk');
@@ -21,8 +32,9 @@ eval(fs.readFileSync(__dirname + '/compteGestion.js')+'');
 eval(fs.readFileSync(__dirname + '/public/js/fonctions.js')+'');
 
 var tauxLumensCHF;
-var balanceCompte;
 
+
+// transporteur défini pour l'envoi du mail, avec email et emailMdp qui sont définis dans compteGestion.js
 var transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
   port: 587,
@@ -38,6 +50,7 @@ var k = schedule.scheduleJob('*/5 * * * *', function(){
 	majTaux();
 });
 
+
 //fonction qui va être lancée tous les 1er du mois
 var j = schedule.scheduleJob('0 0 1 * *', function(){
 	initPeriodes("lancerTransactions");
@@ -48,38 +61,44 @@ app.use(express.static(__dirname + '/public'));
 app.engine('html', require('ejs').renderFile);
 app.set('view engine', 'html');
 
+// dès qu'une requête de type options est envoyé à une url de l'api
+// le serveur répond qu'il accepte les méthodes GET, PUT, POST, DELETE et OPTIONS
+app.options('/api/*', function (request, response, next) {
+    response.header("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS");
+    response.send();
+});
+
+app.use(cookieParser());
 
 
 /* On utilise les sessions */
 app.use(session({secret: 'investProjectSecret'}))
 
 
-/* S'il n'y a pas de session, on les initialises pour la suite */
+/* S'il n'y a pas de session, on les initialises pour la suite ---------------------------------------------------------------------------------------------------------------------------------------- */
 .use(function(req, res, next){
-    if (typeof(session.publicKey) == 'undefined') {
-        session.publicKey = req.session.publicKey;
-    }
-	if (typeof(session.doAcceptation) == 'undefined') {
-        session.doAcceptation = req.session.doAcceptation;
-    }
 	majTaux()
 	next();
 })
+
+/***********************************************************************************
+**************************TEST SESSIONS*******************************
+***********************************************************************************/
+
+.get('/session', function(req, res){
+	res.send(req.session);
+})
+
+
 
 /***********************************************************************************
 ************************************GET*********************************************
 ***********************************************************************************/
 
 .get('/',function(req, res){
-	//session = req.session; (j'avais session undefined et lorsque j'ai mis ça en commentaire ça a fonctionnée
-	// peut être le problème est du que je redéfinissait session alors qu'en haut il était égal à require('cookie-session')...
-	//Session set when user Request our app via URL
-	if(session.publicKey) {
-	/*
-	* This line check Session existence.
-	* If it existed will do some action.
-	*/
-		if(session.doAcceptation=="true"){
+	if(req.session.publicKey) {
+		console.log("get/ req.session.publicKey"+req.session.publicKey);
+		if(req.session.doAcceptation=="true"){
 			res.redirect('/acceptation');
 		} else{
 			res.redirect('/accueil');
@@ -94,7 +113,7 @@ app.use(session({secret: 'investProjectSecret'}))
 .get('/acceptation', function(req, res) {
 	var pasConnecte=verifSession(req, res);
 	if(pasConnecte==false){
-		res.render('acceptation.ejs', {sessPublicKey: session.publicKey});
+		res.render('acceptation.ejs', {sessPublicKey: req.session.publicKey});
 	}
 })
 
@@ -103,7 +122,8 @@ app.use(session({secret: 'investProjectSecret'}))
 .get('/accueil', function(req, res) {
 	var pasConnecte=verifSession(req, res);
 	if(pasConnecte==false){
-		res.render('accueil.ejs', {tauxLumensCHF:tauxLumensCHF, balanceCompte:balanceCompte});
+		console.log(tauxLumensCHF);
+		res.render('accueil.ejs', {tauxLumensCHF:tauxLumensCHF, balanceCompte:req.session.balance});
 	}
 	
 })
@@ -112,26 +132,32 @@ app.use(session({secret: 'investProjectSecret'}))
 .get('/ajouterLumens', function(req, res) {
 	var pasConnecte=verifSession(req, res);
 	if(pasConnecte==false){
-		res.render('ajouterLumens.ejs', {tauxLumensCHF:tauxLumensCHF, balanceCompte:balanceCompte});
+		res.render('ajouterLumens.ejs', {tauxLumensCHF:tauxLumensCHF, balanceCompte:req.session.balance});
 	}  
 })
 
 //Permet aux clients de voir la balance de leur compte
 .get('/balance', function(req, res) {
-	majBalance(true, res);
+	console.log("maj balance : "+req.session.publicKey);
+	majBalance(true, res, req);
 })
 
 
 /* On affiche le formulaire de connexion */
-.get('/connexion', function(req, res) { 
-    res.render('connexion.ejs');
+.get('/connexion', function(req, res) {
+	var pasConnecte=verifSession(req, res, true);
+	if(pasConnecte==true){
+		res.render('connexion.ejs');
+	}else{
+		res.redirect('/accueil');
+	}
 })
 
 /* On affiche le formulaire de création de proposition */
 .get('/creationProposition', function(req, res) { 
     var pasConnecte=verifSession(req, res);
 	if(pasConnecte==false){
-		res.render('creationProposition.ejs', {sessPublicKey: session.publicKey, tauxLumensCHF:tauxLumensCHF, balanceCompte:balanceCompte, sessEmail: session.email});
+		res.render('creationProposition.ejs', {sessPublicKey:req.session.publicKey, tauxLumensCHF:tauxLumensCHF, balanceCompte:req.session.balance, sessEmail: req.session.email});
 	}
 	
 })
@@ -140,23 +166,16 @@ app.use(session({secret: 'investProjectSecret'}))
 .get('/deconnexion', function(req, res) { 
     var pasConnecte=verifSession(req, res);
 	if(pasConnecte==false){
-		session.publicKey=null;
-		session.email=null;
-		balanceCompte=0;
+		req.session.publicKey=null;
+		req.session.email=null;
+		req.session.balance=null
 		res.redirect('/connexion');
 	}
 })
 
-/*
-/* On affiche les champs pour faire une transaction /
-.get('/doTransactions', function(req, res) { 
-    res.render('doTransactions.ejs');
-})
-*/
-
 /* On affiche la page permettant de créer des exemples */
 .get('/exemples', function(req, res) { 
-    res.render('exemples.ejs', {sessPublicKey: session.publicKey, tauxLumensCHF:tauxLumensCHF, balanceCompte:balanceCompte, sessEmail: session.email});
+    res.render('exemples.ejs', {sessPublicKey:req.session.publicKey, tauxLumensCHF:tauxLumensCHF, balanceCompte:req.session.balance, sessEmail: req.session.email});
 })
 
 /* On affiche le formulaire d'inscription */
@@ -173,7 +192,7 @@ app.use(session({secret: 'investProjectSecret'}))
 .get('/listePropositions', function(req, res) { 
     var pasConnecte=verifSession(req, res);
 	if(pasConnecte==false){
-		res.render('listePropositions.ejs', {tauxLumensCHF:tauxLumensCHF, balanceCompte:balanceCompte});
+		res.render('listePropositions.ejs', {tauxLumensCHF:tauxLumensCHF, balanceCompte:req.session.balance});
 	}
 	
 })
@@ -182,7 +201,7 @@ app.use(session({secret: 'investProjectSecret'}))
 .get('/moniteurs/:idProposition', function(req, res) {
 	var pasConnecte=verifSession(req, res);
 	if(pasConnecte==false){
-		res.render('moniteur.ejs', {idProposition: req.params.idProposition, tauxLumensCHF:tauxLumensCHF, balanceCompte:balanceCompte});
+		res.render('moniteur.ejs', {idProposition: req.params.idProposition, tauxLumensCHF:tauxLumensCHF, balanceCompte:req.session.balance});
 	}
     
 })
@@ -191,7 +210,7 @@ app.use(session({secret: 'investProjectSecret'}))
 .get('/propositions/:idProposition', function(req, res) {
 	var pasConnecte=verifSession(req, res);
 	if(pasConnecte==false){
-		res.render('proposition.ejs', {sessPublicKey: session.publicKey, idProposition: req.params.idProposition, tauxLumensCHF:tauxLumensCHF, balanceCompte:balanceCompte, sessEmail: session.email});
+		res.render('proposition.ejs', {sessPublicKey:req.session.publicKey, idProposition: req.params.idProposition, tauxLumensCHF:tauxLumensCHF, balanceCompte:req.session.balance, sessEmail: req.session.email});
 	}
     
 })
@@ -200,7 +219,7 @@ app.use(session({secret: 'investProjectSecret'}))
 .get('/reglement', function(req, res) { 
 	var pasConnecte=verifSession(req, res);
 	if(pasConnecte==false){
-		res.render('reglement.ejs', {tauxLumensCHF:tauxLumensCHF, balanceCompte:balanceCompte});
+		res.render('reglement.ejs', {tauxLumensCHF:tauxLumensCHF, balanceCompte:req.session.balance});
 	}
 })
 
@@ -224,16 +243,14 @@ app.use(session({secret: 'investProjectSecret'}))
 
 /* On initialise les sessions lors de la connexion */
 .post('/init', urlencodedParser, function(req, res) { 
-    session.publicKey=req.body.publicKey;
-	session.doAcceptation=req.body.doAcceptation;
-	session.email=req.body.email;
-	if(session.doAcceptation=="true"){
+	req.session.publicKey=req.body.publicKey;
+	req.session.doAcceptation=req.body.doAcceptation;
+	req.session.email=req.body.email;
+	if(req.session.doAcceptation=="true"){
 		res.redirect('/acceptation');
 	} else{
 		res.redirect('/accueil');
 	}
-	majBalance();
-	
 })
 
 //Permet d'effectuer un investissement
@@ -291,11 +308,6 @@ app.use(session({secret: 'investProjectSecret'}))
 		res.send("error");
 	});
 	
-	/*if(result==true){
-		res.send("transaction réussie");
-	}else{
-		res.send("transaction échouée");
-	}*/
 
 })
 
@@ -347,7 +359,6 @@ function doTransaction (secret, destinationAccount, montant){
 	})
 	.then(function(result) {
 		console.log('Success! Results:', result);
-		//res.redirect('/doTransactions');
 	})
 	.catch(function(error) {
 		console.error('Something went wrong!', error);
@@ -414,6 +425,7 @@ function majTaux(){
 	var tauxLumensEuro;
 	var tauxEuroCHF;
 	var xmlhttp;
+	var inc = -1;
 	// compatible with IE7+, Firefox, Chrome, Opera, Safari
 	xmlhttp = new XMLHttpRequest();
 	xmlhttp.onreadystatechange = function(){
@@ -425,10 +437,11 @@ function majTaux(){
 			xmlhttp2 = new XMLHttpRequest();
 			xmlhttp2.onreadystatechange = function(){
 				if (xmlhttp2.readyState == 4 && xmlhttp2.status == 200){
-					var data = JSON.parse(xmlhttp2.responseText);
-					data.forEach(function(obj) {
-						if(obj.Name == "XLM_EUR"){
-							tauxLumensEuro = obj.Price;
+					var data2 = JSON.parse(xmlhttp2.responseText);
+					inc = inc+1;
+					data2.pairs.forEach(function(obj) {
+						if(obj.name == "XLM_EUR"){
+							tauxLumensEuro = obj.price;
 						}
 					});
 					tauxLumensCHF = tauxLumensEuro * tauxEuroCHF;;
@@ -469,48 +482,54 @@ function lancerTransactions(){
 	});
 	tabPeriodes.push(periode);
 	var d = new Date();
-	//le mois renvoyé est un chiffre de 0 à 11, donc si on est en janvier, on aura 0, donc on fait +1 pour avoir 01/
-	//et on fait +2 pour avoir le mois suivant pour la date fin, ce qui donne 02 (février).
-	var mois = d.getMonth()+2;
+	//le mois renvoyé est un chiffre de 0 à 11, donc si on est en janvier, on aura 0, donc on fait +1 pour avoir 01
+	var mois = d.getMonth()+1;
+	var moisFin = mois+1;
+	if(moisFin==13){moisFin=1};
 	var jour = d.getDate();
-	var heure = d.getHours();
-	var minute = d.getMinutes();
 	var annee = d.getFullYear();
+	var anneeFin = annee;
 	if (mois < 10) { mois = '0' + mois; }
+	if (moisFin < 10) { moisFin = '0' + moisFin; }
 	if (jour < 10) { jour = '0' + jour; }
-	if (mois=="01"){
-		annee =d.getFullYear()+1;
+	if (moisFin=="01"){
+		anneeFin =d.getFullYear()+1;
 	}
 	
-	var dateDebut = jour+"/"+(d.getMonth()+1)+"/"+annee;
-	var dateFin = "01/"+mois+"/"+annee;
-	tabPeriodes.push(new Periode(periode.numeroPeriode+1, d.getFullYear, dateFin));
-	majPeriodes(encodeURIComponent(JSON.stringify(tabPeriodes)), hash);
+	var dateDebut = jour+"/"+mois+"/"+annee;
+	var dateFin = "01/"+moisFin+"/"+anneeFin;
+	tabPeriodes.push(new Periode(periode.numeroPeriode+1, dateDebut, dateFin));
+	majPeriodes(JSON.stringify(tabPeriodes), hash);
 }
 
 /*
 	Fonction qui met à jour la balance de la personne connectée.
 */
-function majBalance(demande=false, res=""){
+function majBalance(demande=false, res="", req){
+	console.log("reeeeeeeeeeeeeeeeeeq "+req.session.publicKey);
 	var server = new StellarSdk.Server('https://horizon.stellar.org');
 	//on prend la clé publique de celui connecté
-	var publicKey = session.publicKey;
-	if(server.loadAccount(publicKey)!="Unhandled rejection NotFoundError: [object Object]"){		
+	var publicKey =req.session.publicKey;
+	console.log("teeeeeeest "+server.loadAccount(publicKey)=="Unhandled rejection NotFoundError: [object Object]");
+	if(server.loadAccount(publicKey)!="Unhandled rejection NotFoundError: [object Object]"){
+		console.log("balance test");
 		// the JS SDK uses promises for most actions, such as retrieving an account
 		server.loadAccount(publicKey).then(function(account) {
 			account.balances.forEach(function(balance) {
-				balanceCompte = balance.balance;
-				console.log(balance.balance);
+				req.session.balance = balance.balance;
+				//console.log(balance.balance);
 				actif=true;
 				if(demande==true){
 					var info = '[{"publicKey": "'+publicKey+'", "balance": "'+balance.balance+'", "tauxLumensCHF": "'+tauxLumensCHF+'"}]';
+					console.log("balance demande true");
 					res.send(info);
 				}
 			});
 		});
 	} else {
-		balanceCompte=0;
+		req.session.balance=0;
 		if(demande==true){
+			console.log("balance ne fonctionne pas");
 			var info = '[{"publicKey": "'+publicKey+'", "balance": "test", "tauxLumensCHF": "'+tauxLumensCHF+'"}]';
 			res.send(info);
 		}	
@@ -560,10 +579,12 @@ function envoyerEmail(emailClient, retourInvestissement, nomProj, solde){
 /*
 	Fonction qui vérifie si la personne est connectée ou pas.
 */
-function verifSession(req, res){
+function verifSession(req, res, connexion = false){
 	var pasConnecte=false;
-	if(session.publicKey==null) {
-		res.redirect("/connexion");
+	if(req.session.publicKey==null) {
+		if(connexion==false){
+			res.redirect("/connexion");
+		}
 		pasConnecte=true;
 	}
 	return pasConnecte;

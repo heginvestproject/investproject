@@ -211,7 +211,6 @@ function getBalance(){
 	});
 	jqxhr.fail(function(data){
 		balance = 0;
-		//alert("getBalance");
 		$('#solde').text("Votre solde : "+balance.toFixed(7)+" XLM / "+(balanceCHF*balance).toFixed(2)+" CHF");
 	});
 	//return balance;
@@ -305,7 +304,6 @@ function initComptes (){
 	});
 	jqxhr.fail(function(data){
 		alert("Le fichier json n'a pas été récupéré");
-		//$("#resultat").text("Cette clé privée n'est pas valide");
 	});
 }
 
@@ -324,7 +322,6 @@ function putComptes () {
 		url: "/comptes",
 		data: dataString,
 		success: function(data) {
-			//alert(data._links.transaction.href);
 			attendre(false);
 			if(data=="error"){
 				alert("Désolé, il y a eu un problème avec un des serveurs.");
@@ -353,7 +350,6 @@ function putPeriodes(action, proposition=null){
 		url: "/periodes",
 		data: dataString,
 		success: function(data) {
-			//alert(data._links.transaction.href);
 			if(data=="error"){
 				attendre(false);
 				switch(action) {

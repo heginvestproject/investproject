@@ -1,3 +1,10 @@
+<!--
+	Auteur : Amir SAIDI
+	Date création : septembre 2017
+	Lieu : Genève / HEG
+	Description : Page qui permet de créer une proposition avec son nom, ses dates de début et de fin, ainsi que sa description qui est faite via un éditeur
+				  de texte pour permettre de soigner sa présentation.
+-->
 <!DOCTYPE html>
 
 <html>
@@ -39,9 +46,14 @@
 				<button style='float:right' class="button" id="creer">Créer</button>
 				<div id="result"></div>
 			</div>
+			<!--popup d'information-->
+			<div hidden id="information" title="Information">
+			  <p id="msgInformation" class="information" ></p>
+			  <button style="float:right" onClick="$('#information').dialog('close');">ok</button>
+			</div>
 		</div>
-		<script src="/js/footer.js"></script>
     </body>
+	<script src="/js/footer.js"></script>
 </html>
 <script type="text/javascript">
 	var ckEditor;
@@ -69,7 +81,7 @@
 	});
 	
 
-	 
+	/* 
 	$('#exemple').click(function (){
 		alert("ok");
 		var lesPeriodes = [];
@@ -91,17 +103,21 @@
 		alert(ckEditor.getData);
 		alert(encodeURIComponent(ckEditor.getData()));
 	});
-	
+	*/
 	
 
 	
 	function ajouterProposition(){
-		var periode = tabPeriodes.pop();
-		var nom = $('#nomProjet').val();
-		var description = ckEditor.getData();
-		periode.listePropositions.push(new Proposition(nom , $('#dateDebutProjet').val(), $('#dateFinProjet').val(), description, (idMaxProposition+1), sessPublicKey, sessEmail));
-		tabPeriodes.push(periode);
-		putPeriodes("création");
+		if($('#nomProjet').val().length>9 && ckEditor.getData().length>40){
+			var periode = tabPeriodes.pop();
+			var nom = $('#nomProjet').val();
+			var description = ckEditor.getData();
+			periode.listePropositions.push(new Proposition(nom , $('#dateDebutProjet').val(), $('#dateFinProjet').val(), description, (idMaxProposition+1), sessPublicKey, sessEmail));
+			tabPeriodes.push(periode);
+			putPeriodes("création");
+		}else{
+			message("le titre doit contenir minimum 10 caractères et la description au minimum une phrase.");
+		}
 	}
 		/*function doPost(){
 		alert($('#nomProjet').val());

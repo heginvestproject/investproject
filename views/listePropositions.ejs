@@ -1,3 +1,11 @@
+<!--
+	Auteur : Amir SAIDI
+	Date création : septembre 2017
+	Lieu : Genève / HEG
+	Description : Page affichant la liste des propositons en cours. Contient une comboBox avec la période actuelle et les anciennes périodes.
+				  Lorsqu'on sélectionne une ancienne période, la liste des propositions concernant cette période est affichée, ainsi qu'un
+				  logo représentant le résultat pour chaque propositon.
+-->
 <!DOCTYPE html>
 
 <html>
@@ -14,9 +22,7 @@
 
     <body>
 		<div id="page" style="bottom:0;" >
-			<header>
-				<script src="/js/menu.js"></script>
-			</header>
+			<script src="/js/menu.js"></script>
 			<div id="contenu">
 				<img src="/img/logo.png" alt="InvestProject"/>
 				<h1>Propositions de projet</h1>
@@ -51,8 +57,8 @@
 				<button style='float:right' class="button" id="btnCreerProposition" onClick="window.location='/creationProposition'">Créer une proposition</button>
 			</div>
 		</div>
-		<script src="/js/footer.js"></script>
     </body>
+	<script src="/js/footer.js"></script>
 </html>
 <script type="text/javascript">
 	var idMaxProposition;

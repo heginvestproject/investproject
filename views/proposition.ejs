@@ -1,3 +1,10 @@
+<!--
+	Auteur : Amir Saidi
+	Date création : septembre 2017
+	Lieu : Genève / HEG
+	Description : Page affichant une proposition particulière, sélectionnée à partir de la liste des propositions. Dans cette page, le créateur de la proposition
+				  peut modifier les informations de la proposition. Les personnes peuvent visualiser la proposition et y investir des lumens.
+-->
 <!DOCTYPE html>
 <html>
     <head>
@@ -36,15 +43,50 @@
 					<div id="tauxLumensCHF" style="display:none"><%= tauxLumensCHF %></div>
 					<div id="balanceCompte" style="display:none"><%= balanceCompte %></div>
 				</form>
-				<strong style="font-size:22px;color:#4186be;" >Lumens :</strong> <input type="number" id="nbLumens" style="width:80px;height:25px" min="1">
-				<button class="button" id="btnInvestir" disabled>investir</button>
+				<strong style="font-size:22px;color:#4186be;" >Lumens :</strong> <input onkeyup="verif_nombre(this);" type="text" id="nbLumens" style="width:80px;height:25px" min="1">
+				<button style="margin-left:10px" class="button" id="btnInvestir" disabled>investir</button>
 				<button style="float:right;" class="button" id="btnModifier" disabled>modifier</button>
 				<!--<button id="btnT" >tester</button>-->
 				<div id="result"></div>
 			</div>
+			
+			
+				<!--popup pour la clé privée-->
+				<div hidden id="dialog-form" title="clé privée">
+					<span class="validateTips">Veuillez rentrer votre clé privée s'il vous plait.</span>
+				 
+					<form>
+						<fieldset>
+							<label id="lblPassword" for="password">Password</label>
+							<input class="input" type="password" name="password" id="password" value="" class="text ui-widget-content ui-corner-all">
+				 
+							<!-- Allow form submission with keyboard without duplicating the dialog button -->
+							<input class="input" type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+						</fieldset>
+					</form>
+				</div>
+				
+				<!--popup d'information-->
+				<div hidden id="information" title="Information">
+				  <p id="msgInformation" class="information" ></p>
+				  <button style="float:right" onClick="$('#information').dialog('close');">ok</button>
+				</div>
+				
+				<style>
+					#lblPassword, .input { display:block; }
+					#password { margin-bottom:12px; width:95%; padding: .4em; }
+					fieldset { padding:0; border:0; margin-top:25px; }
+					h1 { font-size: 1.2em; margin: .6em 0; }
+					div#users-contain { width: 350px; margin: 20px 0; }
+					div#users-contain table { margin: 1em 0; border-collapse: collapse; width: 100%; }
+					div#users-contain table td, div#users-contain table th { border: 1px solid #eee; padding: .6em 10px; text-align: left; }
+					.ui-dialog .ui-state-error { padding: .3em; }
+					.validateTips { border: 1px solid transparent; padding: 0.3em; }
+				</style>
 		</div>
 		
     </body>
+	<script src="/js/footer.js"></script>
 </html>
 <script type="text/javascript">
 	var ckEditor;
@@ -54,14 +96,14 @@
 	var tauxLumensCHF;
 	var balanceCompte;
 	
-	$('#btnT').click(function(){
+	/*$('#btnT').click(function(){
 		$.prompt('Example 1');
 	});
-	
+	*/
 	
 	
 	$(document).ready(function(){
-		ckEditor = CKEDITOR.replace( 'descriptionProjet' );
+		//ckEditor = CKEDITOR.replace( 'descriptionProjet' );
 		id=$('#idProposition').text();
 		sessPublicKey = $('#sessPublicKey').text();
 		sessEmail = $('#sessEmail').text();
@@ -73,6 +115,7 @@
 		$('#solde').text("Votre solde : "+balanceCompte.toFixed(7)+" XLM / "+(balanceCompte*tauxLumensCHF).toFixed(2)+" CHF");
 		$('#taux').append(" "+tauxLumensCHF.toFixed(7));
 		initPeriodes("afficherProposition");
+		//popup();
 	});
 	$('#btnModifier').click(function(){
 		//CKEDITOR.instances.descriptionProjet.updateElement();
@@ -88,7 +131,7 @@
 
 	 
 	$('#btnInvestir').click(function (){
-		investir();
+		popup();
 	});
 	
 	//PLACER LES FONCTION D'ENCODAGE ET DECODAGE DES CARACTERES DANS LES PAGES QUI EN ONT BESOIN ET TERMINER L'Ajouter
@@ -115,63 +158,83 @@
 		//CKEDITOR.instances['descriptionProjet'].setData(proposition.descriptionProjet);
 		//ckEditor.setData(proposition.descriptionProjet);
 		//CKEDITOR.instances['descriptionProjet'].updateElement();
-
-		ckEditor.on( 'instanceReady', function ( ev ) {
-			editor = ev.editor;
-			editor.setData(proposition.descriptionProjet);
+		
+		CKEDITOR.replace( 'descriptionProjet', {
+			on: {
+				instanceReady: function( ev ) {
+					editor = ev.editor;
+					editor.setData(proposition.descriptionProjet);
+					if(proposition.statut!="En cours"){
+						editor.setReadOnly(true);
+					}else if(sessPublicKey!=proposition.publicKey){
+						editor.setReadOnly(true);
+					}else{
+						editor.setReadOnly(false);
+					}
+				}
+			}
 		} );
 		if(proposition.statut!="En cours"){
 			$("#btnModifier").prop('disabled',true);
 			$("#nomProjet").prop('readonly',true);
 			$("#btnInvestir").prop('disabled',true);
-			ckEditor.setReadOnly(true);
+			$("#btnInvestir").attr('class', 'disabled');
+			$("#btnModifier").attr('class', 'disabled');
 		}else if(sessPublicKey!=proposition.publicKey){
 			$("#btnModifier").prop('disabled',true);
 			$("#nomProjet").prop('readonly',true);
 			$("#btnInvestir").prop('disabled',false);
-			ckEditor.setReadOnly(true);
+			$("#btnModifier").attr('class', 'disabled');
 		}else{
 			$("#btnModifier").prop('disabled',false);
 			$("#nomProjet").prop('readonly',false);
 			$("#btnInvestir").prop('disabled',false);
 			doDatePicker();
-			ckEditor.setReadOnly(false);
 		}
-		ckEditor.setData(proposition.descriptionProjet);
+		//ckEditor.setData(proposition.descriptionProjet);
 		if(proposition.statut== "En cours"){
 			$("#btnInvestir").prop('disabled',false);
 		}else{
 			
 			$("#btnModifier").prop('disabled',true);
 			
-		}
+		}		
+		//ckEditor.setData(proposition.descriptionProjet);
 		attendre(false);
-		
-		ckEditor.setData(proposition.descriptionProjet);
 	}
-	/*
-		Mettre le bouton pour investir, ajouter un attribut statut pour la proposition.
-	*/
 	
 	function modifierProposition(){
-		var periode = tabPeriodes.pop();
-		$.each(periode.listePropositions, function(i, obj) {
-			if(obj.propositionId == id){
-				obj.nomProjet=$('#nomProjet').val();
-				obj.dateDebutProjet=$('#dateDebutProjet').val();
-				obj.dateFinProjet=$('#dateFinProjet').val();
-				obj.descriptionProjet=ckEditor.getData();
-			}
-		});
-		tabPeriodes.push(periode);
+		alert(ckEditor.getData());
+		if($('#nomProjet').val().length>9 && ckEditor.getData().length>40){
+			var periode = tabPeriodes.pop();
+			$.each(periode.listePropositions, function(i, obj) {
+				if(obj.propositionId == id){
+					obj.nomProjet=$('#nomProjet').val();
+					obj.dateDebutProjet=$('#dateDebutProjet').val();
+					obj.dateFinProjet=$('#dateFinProjet').val();
+					obj.descriptionProjet=ckEditor.getData();
+				}
+			});
+			tabPeriodes.push(periode);
 
-		putPeriodes("modification");
+			putPeriodes("modification");
+			
+		}else{
+			message("le titre doit contenir minimum 10 caractères et la description au minimum une phrase.");
+		}
 	}
 	
-	function investir(){
+
+	
+	function investir(secretKey){
+		alert(secretKey);
+		var compteActif = false;
 		attendre(true);
-		var secretKey = prompt("Veuillez entrez votre clé secrète s'il vous plait.", "");
-		if (secretKey != null) {
+		//var secretKey = prompt("Veuillez entrez votre clé secrète s'il vous plait.", "");
+		if(secretKey==null){
+			compteActif=true; //pour éviter que le timeout affiche le message du compte inactif
+			attendre(false);
+		}else if (secretKey.length > 0) {
 			var periode = tabPeriodes.pop();
 			var proposition = getProposition(id, periode.listePropositions);
 			var utilisateur = getUtilisateur(sessPublicKey);
@@ -179,10 +242,11 @@
 			var balance;
 			var jqxhr =  $.get( "/balance");
 			jqxhr.done(function( data ) {
+				compteActif = true;
 				$.each(JSON.parse(data), function(i, obj) {
 					balance = obj.balance;
 				});
-				if((balance-valeur)>20){
+				if((balance-valeur)>=1){
 					var destinationKey = investProjectPublicKey;
 					var dataString = 'secretKey='+ secretKey.toString() + '&destinationKey=' + destinationKey + '&valeur=' + (valeur-0.00001).toString();
 					$.ajax({
@@ -191,7 +255,8 @@
 						data: dataString,
 						success: function(data) {
 							if(data=="error"){
-								alert("L'investissement n'a pas pu être pris en compte dû à un soucis d'un serveur.");
+								attendre(false);
+								message("L'investissement n'a pas pu être pris en compte dû à un soucis d'un serveur.");
 								tabPeriodes.push(periode);
 							} else{
 								attendre(false);
@@ -199,20 +264,20 @@
 								proposition.balance += valeur-(valeur*0.1/100);
 								periode = setProposition(periode, proposition);
 								tabPeriodes.push(periode);
-								putPeriodes("investissement");
+								putPeriodes("investissement", id);
 								//alert("investissement réussi !");
 							}
 							
 						},
 						error: function(data) {
 							attendre(false);
-							alert("l'investissement n'a pas pu être fait, dû à un souci d'un serveur");
+							message("l'investissement n'a pas pu être fait, dû à un souci d'un serveur");
 						}
 					});
 				}else{
 					attendre(false);
 					tabPeriodes.push(periode);
-					alert("Votre compte doit garder 20 lumens minimum.");
+					message("Votre compte doit garder 1 lumen minimum.");
 				}
 
 			});
@@ -220,10 +285,93 @@
 				attendre(false);
 				balance = -1;
 			});
-		} else{
+		} else {
+			compteActif=true; //pour éviter que le timeout affiche le message du compte inactif
 			attendre(false);
-			alert("veuillez rentrez une clé secrète valide s'il vous plait.");
+			message("veuillez rentrez une clé secrète valide s'il vous plait.");
 		}
+		setTimeout(function(){
+			if(!compteActif){
+				attendre(false);
+				message("Votre compte est inactif, pour qu'il soit considéré comme actif, il doit contenir 1 Lumen minimum. Pour savoir comment recharger votre compte, aller sur la page \"Ajouter des lumens\"");
+			}	
+		}, 2000);
+		
+	}
+	
+	/*
+		On permet que des nombres décimaux positifs pour l'investissement en lumens.
+	*/
+	function verif_nombre(champ){
+		var chiffres = new RegExp("^[0-9|.]+$");
+		var verif;
+		var points = 0;
+	 
+		for(x = 0; x < champ.value.length; x++)
+		{
+				verif = chiffres.test(champ.value.charAt(x));
+			if(champ.value.charAt(x) == "." && x!=0){
+				points++;
+			}else if(champ.value.charAt(x) == "." && x==0){
+				verif=false;
+			}
+				if(points > 1){
+					verif = false; points = 1;
+				}
+			if(verif == false){
+				champ.value = champ.value.substr(0,x) + champ.value.substr(x+1,champ.value.length-x+1);
+				x--;
+			}
+		}
+	}
+	
+	
+	function popup(){
+		var dialog, form,
+	 
+		  password = $( "#password" ),
+		  allFields = $( [] ).add( password ),
+		  tips = $( ".validateTips" );
+	 
+		function updateTips( t ) {
+		  tips
+			.text( t )
+			.addClass( "ui-state-highlight" );
+		  setTimeout(function() {
+			tips.removeClass( "ui-state-highlight", 1500 );
+		  }, 500 );
+		}
+		
+		function appelInvestir(){
+			investir(password.val());
+			dialog.dialog("close");
+		}
+
+		dialog = $( "#dialog-form" ).dialog({
+		  autoOpen: false,
+		  height: 250,
+		  width: 400,
+		  modal: true,
+		  buttons: {
+			"Investir": appelInvestir,
+			Annuler: function() {
+			  dialog.dialog( "close" );
+			}
+		  },
+		  close: function() {
+			form[ 0 ].reset();
+			allFields.removeClass( "ui-state-error" );
+		  }
+		});
+	 
+		form = dialog.find( "form" ).on( "submit", function( event ) {
+			event.preventDefault();
+		});
+		
+		
+		dialog.dialog( "open" );
+	 
+		
 	}
 	
 </script>

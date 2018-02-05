@@ -1,5 +1,9 @@
-/*Fichier javascript qui contient toutes les fonctions qui sont utilisées exactement de la même façon
-  par toutes les pages. */
+/*
+	Auteur : Amir SAIDI
+	Date création : septembre 2017
+	Lieu : Genève / HEG
+	Description : Fichier javascript qui contient toutes les fonctions qui sont utilisées exactement de la même façon par toutes les pages.
+*/
 
 // tableau des périodes
 var tabPeriodes;
@@ -207,7 +211,7 @@ function getBalance(){
 	});
 	jqxhr.fail(function(data){
 		balance = 0;
-		alert("getBalance");
+		//alert("getBalance");
 		$('#solde').text("Votre solde : "+balance.toFixed(7)+" XLM / "+(balanceCHF*balance).toFixed(2)+" CHF");
 	});
 	//return balance;
@@ -229,12 +233,13 @@ function initPeriodes (nomFonction=""){
 	xmlhttp.onreadystatechange = function(){
 		if (xmlhttp.readyState == 4 && xmlhttp.status == 200){
 			idMaxProposition = 0;
-			var data = JSON.parse(xmlhttp.responseText);
+			var data = xmlhttp.responseText;
+			data = JSON.parse(data);
 			valueJSON = data.dictionary.entries;
 			obj = valueJSON;
 			for(var key in obj){
 				hash = key;
-				objJ = JSON.parse(obj[key].value);
+				objJ = JSON.parse(obj[key].value);//decodeURIComponent(obj[key].value));
 				objJ.forEach(function(obj2){
 					tabPropositions = [];
 					obj2.listePropositions.forEach(function(obj3) {
@@ -340,7 +345,7 @@ function putComptes () {
 	les investissements. Cette fonction est appelée depuis plusieurs endroit, donc celon l'action qui est faite
 	un message différents est renvoyé au client.
 */
-function putPeriodes(action){
+function putPeriodes(action, proposition=null){
 	attendre(true);
 	var dataString = 'periodes='+ encodeURIComponent(JSON.stringify(tabPeriodes)) + '&hash=' + hash;
 	$.ajax({
@@ -353,27 +358,32 @@ function putPeriodes(action){
 				attendre(false);
 				switch(action) {
 					case "modification":
-						alert("La modification n'a pas pu être faite, dû à un souci d'un serveur");
+						message("La modification n'a pas pu être faite, dû à un souci d'un serveur");
 						break;
 					case "investissement":
-						alert("l'investissement n'a pas pu être fait, dû à un souci d'un serveur");
+						message("l'investissement n'a pas pu être fait, dû à un souci d'un serveur");
 						break;
 					case "création":
-						alert("la création n'a pas pu être faite, dû à un souci d'un serveur");
+						message("la création n'a pas pu être faite, dû à un souci d'un serveur");
 				}
 			} else{
 				attendre(false);
 				switch(action) {
 					case "modification":
-						alert("Modification réussie.");
+						message("Modification réussie.");
 						break;
 					case "investissement":
 						getBalance();
-						alert("Votre investissement a été pris en compte.");
+						message("Votre investissement a été pris en compte.");
+						setTimeout(function(){
+							window.location = "/moniteurs/"+proposition;	
+						}, 2000);
 						break;
 					case "création":
-						alert("Création de proposition réussie.");
-						window.location="/listePropositions";
+						message("Création de proposition réussie.");
+						setTimeout(function(){
+							window.location="/listePropositions";	
+						}, 2000);
 				}	
 			}
 			
@@ -382,10 +392,10 @@ function putPeriodes(action){
 			attendre(false);
 			switch(action) {
 				case "modification":
-					alert("La modification n'a pas pu être faite, dû à un souci d'un serveur");
+					message("La modification n'a pas pu être faite, dû à un souci d'un serveur");
 					break;
 				case "investissement":
-					alert("l'investissement n'a pas pu être fait, dû à un souci d'un serveur");
+					message("l'investissement n'a pas pu être fait, dû à un souci d'un serveur");
 					break;
 				case "création":
 					alert("la création n'a pas pu être faite, dû à un souci d'un serveur");
@@ -405,3 +415,54 @@ function attendre(oui){
 	}
 }
 
+function message(msg){
+	$('#msgInformation').text(msg);
+	$('#information').dialog();
+}
+
+/*
+	fonctions de récupération de la taille du navigateur
+
+function getWindowHeight() {
+    var windowHeight=0;
+    if (typeof(window.innerHeight)=='number') {
+        windowHeight=window.innerHeight;
+    }
+    else {
+     if (document.documentElement&&
+       document.documentElement.clientHeight) {
+         windowHeight = document.documentElement.clientHeight;
+    }
+    else {
+     if (document.body&&document.body.clientHeight) {
+         windowHeight=document.body.clientHeight;
+      }
+     }
+    }
+    return windowHeight;
+}
+
+/*
+	fonctions de positionnement du pied de page
+
+function setFooter() {
+    if (document.getElementById) {
+        var windowHeight=getWindowHeight();
+        if (windowHeight>0) {
+            var contentHeight=
+            document.body.offsetHeight;
+			//alert(document.getElementsByTagName('footer'));
+            var footerElement=document.getElementsByTagName('footer');
+            var footerHeight=footerElement.offsetHeight;
+        if (windowHeight-(contentHeight+footerHeight)>=0) {
+            footerElement.style.position='relative';
+            //footerElement.style.top=
+            (windowHeight-(contentHeight+footerHeight))+'px';
+        }
+        else {
+            footerElement.style.position='static';
+        }
+       }
+      }
+}
+ */

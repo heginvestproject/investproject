@@ -1,9 +1,11 @@
-<!DOCTYPE html>
 <!--
-To change this license header, choose License Headers in Project Properties.
-To change this template file, choose Tools | Templates
-and open the template in the editor.
+	Auteur : Amir Saidi
+	Date création : avril 2017
+	Lieu : Genève / HEG
+	Description : Page de connexion, qui vérifie si la clé privée est existante sur cowaboo, si elle est existante, on vérifie si la personne a déjà acceptée le 
+				  règlement d'InvestProject, si oui elle va directement à l'accueil du site.
 -->
+<!DOCTYPE html>
 <html>
     <head>
         <title>Connexion</title>
@@ -85,10 +87,6 @@ and open the template in the editor.
 					var jqxhr =  $.get(url);
 					jqxhr.done(function( data ) {
 						valueJSON = data.dictionary.entries;//.?.value;
-						//$("#json").text(valueJSON);
-						//RECUPERER LE HASH POUR L'UTILISER DANS LE PUT ET FAIRE LE PUT, VERIFIER CHAQUE GET A CAUSE DU HASH
-						//FAIRE UN EXEMPLE DINVESTISSEMENT AVEC LA PAGE TRANSACTION ET AFFICHER LE COMPTE AVEC LA BALANCE
-						//COMMENCER A VOIR LES PAYEMENTS
 						$.each(valueJSON, function(i, obj) {
 							$.each(JSON.parse(obj.value), function(j, obj2) {
 								tabComptes.push(new Utilisateur(obj2.publicKey));

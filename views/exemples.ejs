@@ -1,3 +1,9 @@
+<!--
+	Auteur : Amir Saidi
+	Date création : septembre 2017
+	Lieu : Genève / HEG
+	Description : Page permettant de faire divers tests pour le développeur.
+-->
 <!DOCTYPE html>
 
 <html>
@@ -24,6 +30,20 @@
 			<script src="/js/menu.js"></script>
 			<div style="text-align:left" id="contenu">
 				<img src="/img/logo.png" alt="InvestProject"/>
+				<div id="dialog-form" title="clé privée">
+					<span class="validateTips">Veuillez rentrer votre clé privée s'il vous plait.</span>
+				 
+					<form>
+						<fieldset>
+							<label for="password">Password</label>
+							<input type="password" name="password" id="password" value="" class="text ui-widget-content ui-corner-all">
+				 
+							<!-- Allow form submission with keyboard without duplicating the dialog button -->
+							<input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+						</fieldset>
+					</form>
+				</div>
+				
 				<h1 style="color:#4186be">Créer une proposition</h1>
 				<form id="formulaire" action="/ajoutProposition" method="post">
 					<strong style="color:#4186be">Nom du projet <span style="margin-left:4.5%;">:</span></strong> <input style="width: 50%;margin-left:0.5%;" type="text" id="nomProjet"><br><br><br>
@@ -39,9 +59,30 @@
 				<button style='float:right' class="button" id="creer">Créer</button>
 				<button style='float:right' class="button" id="afficher">Afficher</button>
 				<button style='float:right' class="button" id="test">Test</button>
+				<button style='float:right' class="button" id="date">date</button>
 				<!--<button id="exemple">exemple</button>-->
 				<div id="result"></div>
 			</div>
+			
+				<!--popup d'information-->
+				<div id="information" title="Basic dialog">
+				  <span id="msgInformation" class="validateTips" ></span>
+				</div>
+				
+			
+			<style>
+				label, input { display:block; }
+				input.text { margin-bottom:12px; width:95%; padding: .4em; }
+				fieldset { padding:0; border:0; margin-top:25px; }
+				h1 { font-size: 1.2em; margin: .6em 0; }
+				div#users-contain { width: 350px; margin: 20px 0; }
+				div#users-contain table { margin: 1em 0; border-collapse: collapse; width: 100%; }
+				div#users-contain table td, div#users-contain table th { border: 1px solid #eee; padding: .6em 10px; text-align: left; }
+				.ui-dialog .ui-state-error { padding: .3em; }
+				.validateTips { border: 1px solid transparent; padding: 0.3em; }
+			</style>
+			 
+			
 		</div>
 		<script src="/js/footer.js"></script>
     </body>
@@ -64,23 +105,57 @@
 		tabPeriodes = [];
 		tabPeriodes.push(new Periode("0", "01/10/2017", "01/11/2017"));
 		initPeriodes();
+		$('#dialog-form').dialog();
+		popup();
+		  
+		
+		
 		attendre(false);
 	});
 	$('#creer').click(function(){
 		//CKEDITOR.instances.descriptionProjet.updateElement();
 		//$('#formulaire').submit();
-		ajouterProposition();
+		//ajouterProposition();
 	});
 	$('#afficher').click(function(){
 		//CKEDITOR.instances.descriptionProjet.updateElement();
 		//$('#formulaire').submit();
 		afficher();
 	});
+	$('#date').click(function(){
+		var d = new Date();
+		//le mois renvoyé est un chiffre de 0 à 11, donc si on est en janvier, on aura 0, donc on fait +1 pour avoir 01
+		var mois = d.getMonth()+1;
+		var moisFin = mois+1;
+		if(moisFin==13){moisFin=1};
+		var jour = d.getDate();
+		var annee = d.getFullYear();
+		var anneeFin = annee;
+		if (mois < 10) { mois = '0' + mois; }
+		if (moisFin < 10) { moisFin = '0' + moisFin; }
+		if (jour < 10) { jour = '0' + jour; }
+		if (moisFin=="01"){
+			anneeFin =d.getFullYear()+1;
+		}
+		
+		var dateDebut = jour+"/"+mois+"/"+annee;
+		var dateFin = "01/"+moisFin+"/"+anneeFin;
+		alert(d.getFullYear());
+		alert(dateFin);
+		alert(dateDebut);
+	});
 
+	function message(msg){
+		$('msgInformation').text(msg);
+		$('#information').dialog();
+	}
 	
 	$('#test').click(function(){
+		
+		/*
 		tabPeriodes.push(new Periode(1,"01/11/2017","01/12/2017"));
 		$('#result').text(JSON.stringify(tabPeriodes));
+		*/
 	});	
 	//GERER LE PROBLEME DE DATE POUR FIREFOX ET ENSUISTE FAIRE LAJOUT DES DONNES EN JSON
 
@@ -125,6 +200,66 @@
 		$('#result').text(encodeURIComponent(JSON.stringify(tabPeriodes)));
 		alert(encodeURIComponent(JSON.stringify(tabPeriodes)));
 	}
+	
+	
+	
+	
+	function popup(){
+		var dialog, form,
+	 
+		  password = $( "#password" ),
+		  allFields = $( [] ).add( password ),
+		  tips = $( ".validateTips" );
+	 
+		function updateTips( t ) {
+		  tips
+			.text( t )
+			.addClass( "ui-state-highlight" );
+		  setTimeout(function() {
+			tips.removeClass( "ui-state-highlight", 1500 );
+		  }, 500 );
+		}
+	 
+	 
+		function addUser(secretKey) {
+			alert(secretKey);
+		}
+	 
+		dialog = $( "#dialog-form" ).dialog({
+		  autoOpen: false,
+		  height: 250,
+		  width: 400,
+		  modal: true,
+		  buttons: {
+			"Investir": addUser,
+			Annuler: function() {
+			  dialog.dialog( "close" );
+			}
+		  },
+		  close: function() {
+			form[ 0 ].reset();
+			allFields.removeClass( "ui-state-error" );
+		  }
+		});
+	 
+		form = dialog.find( "form" ).on( "submit", function( event ) {
+			alert(password);
+		  event.preventDefault();
+		  addUser();
+		});
+	 
+	 
+		//aaaaaaaaaaaaa voir
+		$( "#test" ).on( "click", function() {
+		  dialog.dialog( "open" );
+		});
+	}
+	
+	
+	
+	
+	
+	
 		/*function doPost(){
 		alert($('#nomProjet').val());
 		var http=new XMLHttpRequest();

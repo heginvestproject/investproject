@@ -3,7 +3,7 @@
 
 
 InvestProject est un site internet permettant de proposer des projets pour obtenir un investissement. 
-Il y a pour chaque périodes des propositions créées par des utilisateurs, et ceux qui souhaitent investir pour un des projets, parcourent
+Il y a pour chaque périodes des propositions créées par des utilisateurs, et ceux qui souhaitent investir pour des projets, parcourent
 et choisissent la/les propositions qui les a/ont le plus séduit.
 
 Le but de cela est d’avoir un site où les personnes souhaitant investir sur des projets et les personnes souhaitant obtenir des investissements,
